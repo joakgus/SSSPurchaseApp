@@ -11,6 +11,7 @@ import {
 } from "../lib/storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { BackHandler } from "react-native";
+import { useWindowDimensions } from "react-native";
 
 interface CartEntry {
     item: Item;
@@ -30,6 +31,9 @@ export default function PurchaseScreen() {
     const [showPinPrompt, setShowPinPrompt] = useState(false);
     const [enteredPin, setEnteredPin] = useState("");
     const EXIT_PIN = "1234";
+
+    const { width } = useWindowDimensions();
+    const numColumns = width > 600 ? 4 : 2;
 
     useFocusEffect(
         React.useCallback(() => {
@@ -193,8 +197,9 @@ export default function PurchaseScreen() {
                 <>
                     <Stack.Screen options={{gestureEnabled: false, headerShown: false, headerBackVisible: false}} />
                     <FlatList
+                        key={numColumns}
                         data={items}
-                        numColumns={2}
+                        numColumns={numColumns}
                         keyExtractor={(i) => i.id.toString()}
                         renderItem={({ item }) => {
                             const cartEntry = cart.find((c) => c.item.id === item.id);
@@ -209,7 +214,7 @@ export default function PurchaseScreen() {
                                 />
                             );
                         }}
-                        contentContainerStyle={{ paddingHorizontal: 10 }}
+                        contentContainerStyle={{ paddingHorizontal: 10, paddingBottom: 100 }}
                     />
                     {cart.length > 0 && (
                         <View style={styles.bottomBar}>

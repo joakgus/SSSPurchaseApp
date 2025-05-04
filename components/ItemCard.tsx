@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity, GestureResponderEvent } from "react-native";
+import { View, Text, Image, StyleSheet, TouchableOpacity, useWindowDimensions } from "react-native";
 import { Item } from "../types/Item";
 
 interface Props {
@@ -9,50 +9,55 @@ interface Props {
     onRemove: () => void;
 }
 
-export const ItemCard: React.FC<Props> = ({ item, quantity, onAdd, onRemove }) => (
-    <TouchableOpacity style={styles.card} onPress={onAdd}>
-        <Image source={{ uri: item.image }} style={styles.image} />
-        <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.price}>{item.price.toFixed(2)} kr</Text>
+export const ItemCard: React.FC<Props> = ({ item, quantity, onAdd, onRemove }) => {
+    const { width } = useWindowDimensions();
+    const cardWidth = width > 1000 ? width / 4 - 20 : width > 600 ? width / 3 - 20 : width / 2 - 20;
 
-        <View style={styles.counterRow}>
-            <TouchableOpacity style={styles.button} onPress={(e: GestureResponderEvent) => { e.stopPropagation(); onRemove(); }}>
-                <Text style={styles.buttonText}>−</Text>
-            </TouchableOpacity>
+    return (
+        <TouchableOpacity style={[styles.card, { width: cardWidth }]} onPress={onAdd}>
+            <Image source={{ uri: item.image }} style={styles.image} />
+            <Text style={styles.name}>{item.name}</Text>
+            <Text style={styles.price}>{item.price.toFixed(2)} kr</Text>
 
-            <Text style={styles.counterText}>x{quantity}</Text>
-
-            <TouchableOpacity style={styles.button} onPress={(e: GestureResponderEvent) => { e.stopPropagation(); onAdd(); }}>
-                <Text style={styles.buttonText}>+</Text>
-            </TouchableOpacity>
-        </View>
-    </TouchableOpacity>
-);
+            <View style={styles.counterRow}>
+                <TouchableOpacity style={styles.button} onPress={(e) => { e.stopPropagation(); onRemove(); }}>
+                    <Text style={styles.buttonText}>−</Text>
+                </TouchableOpacity>
+                <Text style={styles.counterText}>x{quantity}</Text>
+                <TouchableOpacity style={styles.button} onPress={(e) => { e.stopPropagation(); onAdd(); }}>
+                    <Text style={styles.buttonText}>+</Text>
+                </TouchableOpacity>
+            </View>
+        </TouchableOpacity>
+    );
+};
 
 const styles = StyleSheet.create({
     card: {
         backgroundColor: "#FFFFFF",
-        padding: 10,
-        borderRadius: 8,
+        padding: 12,
+        borderRadius: 10,
         margin: 8,
         alignItems: "center",
-        width: "45%",
         shadowColor: "#000",
         shadowOpacity: 0.1,
         shadowRadius: 5,
         elevation: 3
     },
     image: {
-        width: 80,
-        height: 80,
+        width: 100,
+        height: 100,
         marginBottom: 8
     },
     name: {
         fontWeight: "bold",
-        color: "#000"
+        fontSize: 16,
+        color: "#000",
+        textAlign: "center"
     },
     price: {
         color: "#004728",
+        fontSize: 14,
         marginBottom: 8
     },
     counterRow: {
@@ -64,17 +69,17 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "bold",
         color: "#004728",
-        marginHorizontal: 8
+        marginHorizontal: 10
     },
     button: {
         backgroundColor: "#004728",
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 5
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 6
     },
     buttonText: {
         color: "#FDD314",
         fontWeight: "bold",
-        fontSize: 16
+        fontSize: 18
     }
 });
