@@ -46,8 +46,11 @@ export default function SyncScreen() {
             if (!savedIp) setShowIpPrompt(true);
             else {
                 setIp(savedIp);
-                if (!savedStand) fetchStands(savedIp);
-                else setStand(savedStand);
+                if (savedStand === null) {
+                    fetchStands(savedIp);
+                } else {
+                    setStand(savedStand);
+                }
             }
         })();
     }, []);
@@ -117,7 +120,7 @@ export default function SyncScreen() {
         if (!ip || !stand) return;
         try {
             const res = await axios.get(`http://${ip}:5000/items`);
-            const filtered = res.data.filter((i: Item) => i.stands === stand);
+            const filtered = res.data.filter((i: Item) => i.stands.includes(stand));
             await downloadImagesAndSaveItems(filtered, ip);
             await getItems();
             Alert.alert("Klart", "Varor har synkroniserats.");
