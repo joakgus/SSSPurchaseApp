@@ -5,18 +5,13 @@ import {
 } from "react-native";
 import {Stack, useRouter} from "expo-router";
 import { ItemCard } from "../components/ItemCard";
-import { Item } from "../types/Item";
+import { Item, CartEntry } from "../types/Item";
 import {
     getItems, getLaptopStand, savePurchase
 } from "../lib/storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { BackHandler } from "react-native";
 import { useWindowDimensions } from "react-native";
-
-interface CartEntry {
-    item: Item;
-    quantity: number;
-}
 
 export default function PurchaseScreen() {
     const router = useRouter();
@@ -89,6 +84,7 @@ export default function PurchaseScreen() {
             await savePurchase({
                 itemId: entry.item.id,
                 quantity: entry.quantity,
+                itemName: entry.item.name,
                 timestamp
             });
         }

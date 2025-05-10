@@ -33,5 +33,5 @@ export default function RootLayout() {
     lockOrientation();
   }, []);
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return <Stack />;
 }
