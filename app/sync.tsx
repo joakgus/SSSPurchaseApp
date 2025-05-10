@@ -1,16 +1,32 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
-    View, Text, TextInput, Button, Modal, Alert, StyleSheet, TouchableOpacity
+    View, Text, TextInput, Button, Modal, Alert, StyleSheet, TouchableOpacity, FlatList
 } from "react-native";
 import axios from "axios";
 import {
     saveLaptopIp, getLaptopIp,
     saveLaptopStand, getLaptopStand,
     downloadImagesAndSaveItems, getItems,
-    clearPurchases
+    clearPurchases, getPurchases
 } from "../lib/storage";
-import { Item } from "../types/Item";
-import { syncPurchasesToServer } from "../lib/sync";
+import {Item, Purchase} from "../types/Item";
+
+const groupByPurchaseEvent = (purchases: Purchase[]) => {
+    const grouped: { [timestamp: string]: Purchase[] } = {};
+    for (const p of purchases) {
+        if (!grouped[p.timestamp]) grouped[p.timestamp] = [];
+        grouped[p.timestamp].push(p);
+    }
+
+    // Sort timestamps oldest -> newest
+    return Object.entries(grouped)
+        .sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime())
+        .map(([timestamp, entries], index) => ({
+            label: `Köp ${index + 1}`,
+            timestamp,
+            entries,
+        }));
+};
 
 export default function SyncScreen() {
     const [ip, setIp] = useState<string | null>(null);
@@ -19,6 +35,9 @@ export default function SyncScreen() {
     const [stands, setStands] = useState<string[]>([]);
     const [showIpPrompt, setShowIpPrompt] = useState(false);
     const [showStandPrompt, setShowStandPrompt] = useState(false);
+    const [unsyncedPurchases, setUnsyncedPurchases] = useState<Purchase[]>([]);
+    const [showSyncBuffer, setShowSyncBuffer] = useState(false);
+    const groupedPurchases = useMemo(() => groupByPurchaseEvent(unsyncedPurchases), [unsyncedPurchases]);
 
     useEffect(() => {
         (async () => {
@@ -54,6 +73,7 @@ export default function SyncScreen() {
     const fetchStands = async (ip: string) => {
         try {
             const res = await axios.get(`http://${ip}:5000/stands`);
+            console.log("Stånd:", res.data);
             setStands(res.data);
             setShowStandPrompt(true);
         } catch {
@@ -82,7 +102,8 @@ export default function SyncScreen() {
 
         try {
             const res = await axios.get(`http://${ip}:5000/items`);
-            const filtered = res.data.filter((i: Item) => i.stand === selected);
+            console.log("Items:", res.data);
+            const filtered = res.data.filter((i: Item) => i.stands.includes(selected));
             await downloadImagesAndSaveItems(filtered, ip);
             await getItems(); // optional: refresh in memory
             Alert.alert("Stånd uppdaterat", `Varor från '${selected}' har hämtats.`);
@@ -108,8 +129,40 @@ export default function SyncScreen() {
     const handleSyncPurchases = async () => {
         if (!ip) return;
         const success = await syncPurchasesToServer(ip);
+        const updated = await getPurchases(); // refresh buffer
+        setUnsyncedPurchases(updated);
+
         Alert.alert(success ? "Synkat" : "Misslyckades", success ? "Köp skickade." : "Synk misslyckades.");
     };
+
+    const syncPurchasesToServer = async (ip: string): Promise<boolean> => {
+        try {
+            const purchases: Purchase[] = await getPurchases();
+            if (purchases.length === 0) return true;
+
+            const response = await axios.post(`http://${ip}:5000/upload-purchases`, purchases, {
+                headers: { "Content-Type": "application/json" }
+            });
+
+            if (response.status === 200) {
+                await clearPurchases();
+                return true;
+            } else {
+                return false;
+            }
+        } catch (e) {
+            console.warn("Fel vid synk:", e);
+            return false;
+        }
+    };
+
+    useEffect(() => {
+        const loadPurchases = async () => {
+            const purchases = await getPurchases();
+            setUnsyncedPurchases(purchases);
+        };
+        loadPurchases();
+    }, []);
 
     return (
         <View style={styles.container}>
@@ -125,9 +178,14 @@ export default function SyncScreen() {
             )}
 
             <View style={styles.buttons}>
-                <Button title="🔄 Resynkronisera" onPress={handleResync} />
-                <Button title="📤 Synka köp" onPress={handleSyncPurchases} />
+                <Button title="🔄 Resynkronisera stånd" onPress={handleResync} />
+                <Button
+                    title="📤 Synka köp"
+                    onPress={handleSyncPurchases}
+                    disabled={unsyncedPurchases.length === 0}
+                />
                 <Button title="🗑️ Rensa osynkade köp" onPress={handleClearPurchases} color="#cc0000" />
+                <Button title="📝 Visa osynkade köp" onPress={() => setShowSyncBuffer(true)} />
             </View>
 
             {/* IP Modal */}
@@ -160,6 +218,34 @@ export default function SyncScreen() {
                     </View>
                 </View>
             </Modal>
+
+            <Modal visible={showSyncBuffer} transparent animationType="slide">
+                <View style={styles.modalBackground}>
+                    <View style={styles.syncModalContainer}>
+                        <Text style={styles.modalTitle}>Osynkade köp ({groupedPurchases.length})</Text>
+                        <FlatList
+                            data={groupedPurchases}
+                            keyExtractor={(item) => item.timestamp}
+                            contentContainerStyle={styles.flatListContent}
+                            renderItem={({ item }) => (
+                                <View style={styles.kopGroup}>
+                                    <Text style={styles.kopLabel}>{item.label}</Text>
+                                    <Text style={styles.kopTimestamp}>
+                                        {new Date(item.timestamp).toLocaleString("sv-SE")}
+                                    </Text>
+                                    {item.entries.map((entry, idx) => (
+                                        <Text key={idx} style={styles.kopEntry}>
+                                            {entry.quantity}x {entry.itemName}
+                                        </Text>
+                                    ))}
+                                </View>
+                            )}
+                        />
+
+                        <Button title="Stäng" onPress={() => setShowSyncBuffer(false)} />
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -187,5 +273,46 @@ const styles = StyleSheet.create({
     changeText: {
         color: "#000",
         fontWeight: "bold"
+    },
+    syncModalContainer: {
+        backgroundColor: "#fff",
+        padding: 16,
+        borderRadius: 10,
+        width: "90%",
+        maxHeight: "80%"
+    },
+    scrollWrapper: {
+        flexGrow: 0,
+        marginVertical: 10,
+        maxHeight: 400 // adjustable if needed
+    },
+    kopGroup: {
+        marginBottom: 12,
+        borderBottomColor: "#ddd",
+        borderBottomWidth: 1,
+        paddingBottom: 6
+    },
+    kopLabel: {
+        fontWeight: "bold",
+        fontSize: 16,
+        marginBottom: 2
+    },
+    kopTimestamp: {
+        fontSize: 12,
+        color: "#666",
+        marginBottom: 4
+    },
+    kopEntry: {
+        fontSize: 14,
+        marginLeft: 8
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: "bold",
+        marginBottom: 10
+    },
+    flatListContent: {
+        flexGrow: 1,
+        paddingBottom: 20
     }
 });

@@ -22,11 +22,11 @@ export const saveLaptopStand = async (stand: string) => {
 };
 
 export const getLaptopStand = async (): Promise<string | null> => {
-    return await AsyncStorage.getItem("STAND");
+    return await AsyncStorage.getItem("STANDS");
 };
 
 export const clearLaptopConfig = async () => {
-    await AsyncStorage.multiRemove(["LAPTOP_IP", "STAND"]);
+    await AsyncStorage.multiRemove(["LAPTOP_IP", "STANDS"]);
 };
 
 export const savePurchase = async (purchase: Purchase) => {
