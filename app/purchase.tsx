@@ -214,18 +214,18 @@ export default function PurchaseScreen() {
                     />
                     {cart.length > 0 && (
                         <View style={styles.bottomBar}>
-                            <Text style={styles.confirmText}>
-                                Totalt:{" "}
-                                {cart.reduce((sum, entry) => sum + entry.quantity * entry.item.price, 0).toFixed(2)} kr
-                            </Text>
-                            <TouchableOpacity style={styles.cancelButton} onPress={() => setShowSummary(true)}>
-                                <Text style={styles.cancelButtonText}>Visa sammanställning</Text>
-                            </TouchableOpacity>
                             <View style={styles.bottomButtons}>
-                                <TouchableOpacity style={styles.cancelButton} onPress={() => setCart([])}>
+                                <Text style={[styles.bottomText, { flex: 1 }]}>
+                                    Totalt:{" "}
+                                    {cart.reduce((sum, entry) => sum + entry.quantity * entry.item.price, 0).toFixed(0)} kr
+                                </Text>
+                                <TouchableOpacity style={[styles.cancelButton, { flex: 2 }]} onPress={() => setShowSummary(true)}>
+                                    <Text style={styles.cancelButtonText}>Visa sammanställning</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={[styles.cancelButton, { flex: 1 }]} onPress={() => setCart([])}>
                                     <Text style={styles.cancelButtonText}>Avbryt köp</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity style={styles.confirmButton} onPress={() => setShowConfirm(true)}>
+                                <TouchableOpacity style={[styles.confirmButton, { flex: 1 }]} onPress={() => setShowConfirm(true)}>
                                     <Text style={styles.confirmButtonText}>Bekräfta köp</Text>
                                 </TouchableOpacity>
                             </View>
@@ -283,24 +283,28 @@ const styles = StyleSheet.create({
     },
     cancelButton: {
         backgroundColor: "#222",
-        paddingVertical: 8,
+        paddingVertical: 20, // Doubled from 8
         paddingHorizontal: 12,
         borderRadius: 5,
         marginRight: 10
     },
     cancelButtonText: {
         color: "#fff",
-        fontWeight: "bold"
+        fontWeight: "bold",
+        textAlign: "center",
+        fontSize: 20
     },
     confirmButton: {
         backgroundColor: "#FDD314",
-        paddingVertical: 8,
+        paddingVertical: 20, // Doubled from 8
         paddingHorizontal: 12,
         borderRadius: 5
     },
     confirmButtonText: {
         color: "#000",
-        fontWeight: "bold"
+        fontWeight: "bold",
+        textAlign: "center",
+        fontSize: 20
     },
     summaryRow: {
         flexDirection: "row",
@@ -310,5 +314,12 @@ const styles = StyleSheet.create({
     confirmText: {
         color: "#fff",
         fontSize: 16
-    }
+    },
+    bottomText: {
+        color: "#fff",
+        fontSize: 28,
+        fontWeight: "bold",
+        textAlign: "center",
+        marginVertical: 18
+    },
 });
