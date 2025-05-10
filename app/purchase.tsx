@@ -217,7 +217,7 @@ export default function PurchaseScreen() {
                             <View style={styles.bottomButtons}>
                                 <Text style={[styles.bottomText, { flex: 1 }]}>
                                     Totalt:{" "}
-                                    {cart.reduce((sum, entry) => sum + entry.quantity * entry.item.price, 0).toFixed(0)} kr
+                                    {cart.reduce((sum, entry) => sum + entry.quantity * entry.item.price, 0).toFixed(2)} kr
                                 </Text>
                                 <TouchableOpacity style={[styles.cancelButton, { flex: 2 }]} onPress={() => setShowSummary(true)}>
                                     <Text style={styles.cancelButtonText}>Visa sammanställning</Text>
