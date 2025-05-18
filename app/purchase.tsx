@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
     View, Text, FlatList, ActivityIndicator, Modal, Button,
-    StyleSheet, TouchableOpacity, Alert, TextInput
+    StyleSheet, TouchableOpacity, Alert, TextInput, KeyboardAvoidingView, Platform
 } from "react-native";
 import {Stack, useRouter} from "expo-router";
 import { ItemCard } from "../components/ItemCard";
@@ -86,7 +86,7 @@ export default function PurchaseScreen() {
                 quantity: entry.quantity,
                 itemName: entry.item.name,
                 timestamp,
-                stand // add the current stand here
+                stand
             });
         }
         setCart([]);
@@ -159,7 +159,10 @@ export default function PurchaseScreen() {
 
             {/* PIN Modal */}
             <Modal visible={showPinPrompt} transparent animationType="fade">
-                <View style={styles.modalBackground}>
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
+                    style={styles.modalBackground}
+                >
                     <View style={styles.modalContainer}>
                         <Text style={styles.modalTitle}>Ange PIN</Text>
                         <TextInput
@@ -185,7 +188,7 @@ export default function PurchaseScreen() {
                             <Button title="Avbryt" color="#888" onPress={() => setShowPinPrompt(false)} />
                         </View>
                     </View>
-                </View>
+                </KeyboardAvoidingView>
             </Modal>
 
             {loading ? (

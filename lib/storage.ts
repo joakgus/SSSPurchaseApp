@@ -29,7 +29,13 @@ export const clearLaptopConfig = async () => {
     await AsyncStorage.multiRemove(["LAPTOP_IP", "STAND"]);
 };
 
-export const savePurchase = async (purchase: Purchase) => {
+export const savePurchase = async (purchase: {
+    itemId: number;
+    quantity: number;
+    itemName: string;
+    timestamp: string;
+    stand: string | null
+}) => {
     const existing = await getPurchases();
     existing.push(purchase);
     await AsyncStorage.setItem("PURCHASES", JSON.stringify(existing));

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import {
-    View, Text, TextInput, Button, Modal, Alert, StyleSheet, TouchableOpacity, FlatList
+    View, Text, TextInput, Button, Modal, Alert, StyleSheet, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform,
 } from "react-native";
 import axios from "axios";
 import {
@@ -191,7 +191,10 @@ export default function SyncScreen() {
 
             {/* IP Modal */}
             <Modal visible={showIpPrompt} transparent animationType="slide">
-                <View style={styles.modalBackground}>
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
+                    style={styles.modalBackground}
+                >
                     <View style={styles.modalBox}>
                         <Text>Ange IP-adress</Text>
                         <TextInput
@@ -203,12 +206,15 @@ export default function SyncScreen() {
                         />
                         <Button title="Spara" onPress={confirmIp} />
                     </View>
-                </View>
+                </KeyboardAvoidingView>
             </Modal>
 
             {/* Stand Modal */}
             <Modal visible={showStandPrompt} transparent animationType="slide">
-                <View style={styles.modalBackground}>
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
+                    style={styles.modalBackground}
+                >
                     <View style={styles.modalBox}>
                         <Text>Välj ett stånd</Text>
                         {stands.map((s) => (
@@ -217,7 +223,7 @@ export default function SyncScreen() {
                             </TouchableOpacity>
                         ))}
                     </View>
-                </View>
+                </KeyboardAvoidingView>
             </Modal>
 
             <Modal visible={showSyncBuffer} transparent animationType="slide">
