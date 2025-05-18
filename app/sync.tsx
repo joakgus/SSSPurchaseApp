@@ -76,7 +76,6 @@ export default function SyncScreen() {
     const fetchStands = async (ip: string) => {
         try {
             const res = await axios.get(`http://${ip}:5000/stands`);
-            console.log("Stånd:", res.data);
             setStands(res.data);
             setShowStandPrompt(true);
         } catch {
@@ -105,7 +104,6 @@ export default function SyncScreen() {
 
         try {
             const res = await axios.get(`http://${ip}:5000/items`);
-            console.log("Items:", res.data);
             const filtered = res.data.filter((i: Item) => i.stands.includes(selected));
             await downloadImagesAndSaveItems(filtered, ip);
             await getItems(); // optional: refresh in memory

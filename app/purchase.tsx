@@ -85,7 +85,8 @@ export default function PurchaseScreen() {
                 itemId: entry.item.id,
                 quantity: entry.quantity,
                 itemName: entry.item.name,
-                timestamp
+                timestamp,
+                stand // add the current stand here
             });
         }
         setCart([]);

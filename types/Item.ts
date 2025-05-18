@@ -11,6 +11,7 @@ export interface Purchase {
     quantity: number;
     timestamp: string;
     itemName: string;
+    stand: string;
 }
 
 export interface CartEntry {
